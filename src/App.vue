@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, watchEffect } from "vue";
-import gpaMeter from "./components/gpaMeter.vue";
+import Gpa from "./components/Gpa.vue";
 import Navbar from "./layout/Navbar.vue";
 import Semester from "./components/Semester.vue";
 
@@ -85,7 +85,6 @@ const removeSemester = (id) => {
   semesters.value.forEach((semester, index) => {
     semester.id = index + 1;
   });
-  console.log(semesters.value);
 };
 
 const totalCredits = computed(() => {
@@ -145,7 +144,7 @@ const CGPA = computed(() => {
       <button class="add-semester" @click="addSemester">Add Semester</button>
     </div>
     <!-- Cumulative GPA -->
-    <gpaMeter :CGPA="CGPA" />
+    <Gpa :CGPA="CGPA" />
   </main>
 </template>
 
