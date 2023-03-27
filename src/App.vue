@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, watchEffect } from "vue";
 
 const semesters = ref([]);
+
 if (localStorage.getItem("semesters") != null) {
   semesters.value = JSON.parse(localStorage.getItem("semesters"));
 } else {
@@ -34,10 +35,13 @@ const calculateGPA = (semester) => {
 };
 
 watch(semesters.value, () => {
-  localStorage.setItem("semesters", JSON.stringify(semesters.value));
   for (const semester of semesters.value) {
     semester.gpa = calculateGPA(semester);
   }
+});
+
+watchEffect(() => {
+  localStorage.setItem("semesters", JSON.stringify(semesters.value));
 });
 
 const addCourse = (id) => {
@@ -78,6 +82,7 @@ const removeSemester = (id) => {
   semesters.value.forEach((semester, index) => {
     semester.id = index + 1;
   });
+  console.log(semesters.value);
 };
 
 const totalCredits = computed(() => {
@@ -194,7 +199,8 @@ const color = computed(() => {
               </li>
             </ul>
             <div class="semester-gpa">
-              Semester {{ semester.id }} GPA: {{ semester.gpa }}
+              Semester {{ semester.id }} GPA:
+              <h4 style="display: inline">{{ semester.gpa }}</h4>
             </div>
             <button class="add-course" @click="addCourse(semester.id)">Add Course</button>
           </li>
