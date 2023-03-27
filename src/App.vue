@@ -126,8 +126,8 @@ const scale = (n, domainMax, rangeMax) => {
 
 const rotation = computed(() => scale(CGPA.value, 4, 180));
 const color = computed(() => {
-  if (CGPA.value >= 3) return "#007A3D"; // Green
-  if (CGPA.value >= 2) return "#F9D616"; // Yellow
+  if (CGPA.value >= 3) return "#AA4465";
+  if (CGPA.value >= 2) return "#023C40";
   return "#CE1126"; // Red
 });
 </script>
@@ -200,7 +200,7 @@ const color = computed(() => {
             </ul>
             <div class="semester-gpa">
               Semester {{ semester.id }} GPA:
-              <h4 style="display: inline">{{ semester.gpa }}</h4>
+              <h4>{{ semester.gpa }}</h4>
             </div>
             <button class="add-course" @click="addCourse(semester.id)">Add Course</button>
           </li>
@@ -250,13 +250,23 @@ const color = computed(() => {
         <text class="rate" x="150" y="135" text-anchor="middle">
           {{ CGPA }}
         </text>
-        <text class="label" x="150" y="180" text-anchor="middle">CGPA</text>
+        <text class="cgba" x="150" y="180" text-anchor="middle">CGPA</text>
       </svg>
     </div>
   </main>
 </template>
 
 <style>
+:root {
+  --primary: #edf0da;
+  --secondary: #aa4465;
+  --third: #023c40;
+}
+.cgba {
+  font-weight: bold;
+  font-size: large;
+}
+
 * {
   padding: 0;
   margin: 0;
@@ -264,15 +274,19 @@ const color = computed(() => {
 }
 
 body {
-  background-color: #f6f1f1;
+  background-color: var(--primary);
+  color: var(--secondary);
 }
 nav {
   box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.07);
-  padding: 9px 60px;
+  padding: 20px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 nav h1 {
-  color: #19a7ce;
+  color: var(--secondary);
   font-weight: 600;
   font-size: xx-large;
 }
@@ -291,6 +305,27 @@ main {
   align-items: center;
 }
 
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .course-inputs select {
+    width: 90%;
+    display: block;
+  }
+  .input-l,
+  select,
+  .input-r {
+    border-radius: 8px;
+  }
+
+  .course-inputs {
+    margin-top: 10px;
+  }
+}
+
 section {
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
   border-radius: 10px;
@@ -302,67 +337,67 @@ section {
   letter-spacing: 1px;
   margin-top: 20px;
   border-radius: 10px;
-  border: 1px solid #19a7ce;
+  border: 1px solid var(--third);
   padding: 10px;
   font-size: medium;
   background-color: transparent;
-  color: #19a7ce;
+  color: var(--third);
   transition: all 0.4s ease;
   cursor: pointer;
 }
 
 .add-semester:hover {
-  border: 1px solid #146c94;
-  color: #146c94;
+  border: 1px solid var(--secondary);
+  color: var(--secondary);
   box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.1);
 }
 
 .add-course {
   border-radius: 10px;
-  border: 1px solid #19a7ce;
+  border: 1px solid var(--third);
   padding: 5px;
   font-size: small;
   background-color: transparent;
-  color: #19a7ce;
+  color: var(--third);
   transition: all 0.4s ease;
   cursor: pointer;
   margin-top: 5px;
 }
 
 .add-course:hover {
-  border: 1px solid #146c94;
-  color: #146c94;
+  border: 1px solid var(--secondary);
+  color: var(--secondary);
   /* box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.1); */
 }
 input:focus,
 select:focus {
   outline: none;
-  border: 1px solid #146c94;
+  border: 1px solid var(--secondary);
 }
 .remove-semester {
   font-size: 20px;
   border: 1px solid transparent;
   background-color: transparent;
   transition: all 0.4s ease;
-  color: #19a7ce;
+  color: var(--third);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .remove-semester:hover {
-  color: #146c94;
+  color: var(--secondary);
 }
 .input-l {
   border-top-left-radius: 8px 8px;
   border-bottom-left-radius: 8px 8px;
-  border: 1px solid #19a7ce;
+  border: 1px solid var(--third);
   margin-right: -1px;
 }
 .input-r {
   border-top-right-radius: 8px 8px;
   border-bottom-right-radius: 8px 8px;
-  border: 1px solid #19a7ce;
+  border: 1px solid var(--third);
   margin-left: -1px;
 }
 input {
@@ -370,8 +405,8 @@ input {
   margin: 3px 0px;
 }
 select {
-  border: 1px solid #19a7ce;
-  padding: 7px 8px 7px;
+  border: 1px solid var(--third);
+  padding: 7px 8px 8px;
 }
 
 .semester-card:not(:last-child) {
@@ -381,17 +416,21 @@ select {
 .remove-course {
   border: 1px solid transparent;
   background-color: transparent;
-  color: #19a7ce;
+  color: var(--third);
   cursor: pointer;
   transition: all 0.4s ease;
   margin-left: 6px;
 }
 
 .remove-course:hover {
-  color: #146c94;
+  color: var(--secondary);
 }
 
 .semester-gpa {
   margin: 6px 0px;
+}
+.semester-gpa h4 {
+  color: var(--third);
+  display: inline;
 }
 </style>
