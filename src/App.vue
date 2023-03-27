@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watchEffect, watch } from "vue";
+import { ref, computed, watch } from "vue";
+
 const semesters = ref([]);
 if (localStorage.getItem("semesters") != null) {
   semesters.value = JSON.parse(localStorage.getItem("semesters"));
@@ -17,18 +18,6 @@ if (localStorage.getItem("semesters") != null) {
       ],
       gpa: 0,
     },
-    {
-      id: 2,
-      courses: [
-        {
-          id: 1,
-          name: "",
-          grade: 0,
-          credits: null,
-        },
-      ],
-      gpa: 0,
-    },
   ];
 }
 
@@ -36,7 +25,7 @@ const calculateGPA = (semester) => {
   let totalCredits = 0;
   let totalGradeCredits = 0;
   for (const course of semester.courses) {
-    if (course.credits !== null) {
+    if (course.credits !== null && course.grade != 0) {
       totalCredits += course.credits;
       totalGradeCredits += course.grade * course.credits;
     }
@@ -44,7 +33,8 @@ const calculateGPA = (semester) => {
   return totalCredits > 0 ? (totalGradeCredits / totalCredits).toFixed(3) : 0;
 };
 
-watchEffect(() => {
+watch(semesters.value, () => {
+  localStorage.setItem("semesters", JSON.stringify(semesters.value));
   for (const semester of semesters.value) {
     semester.gpa = calculateGPA(semester);
   }
@@ -89,11 +79,16 @@ const removeSemester = (id) => {
     semester.id = index + 1;
   });
 };
+
 const totalCredits = computed(() => {
   let total = 0;
   for (const semester of semesters.value) {
     for (const course of semester.courses) {
-      total += course["credits"];
+      if (course.grade != 0) {
+        total += course["credits"];
+      } else {
+        continue;
+      }
     }
   }
   return total;
@@ -103,22 +98,32 @@ const gradeXhours = computed(() => {
   let total = 0;
   for (const semester of semesters.value) {
     for (const course of semester.courses) {
-      total += course["credits"] * course["grade"];
+      if (course.grade != 0) {
+        total += course.credits * course.grade;
+      } else {
+        continue;
+      }
     }
   }
   return total;
 });
-const totalGPA = computed(() => {
+
+const CGPA = computed(() => {
   return gradeXhours.value / totalCredits.value > 0
     ? (gradeXhours.value / totalCredits.value).toFixed(3)
     : 0;
 });
-// localStorage.setItem("semesters", JSON.stringify(semesters.value));
-watch(semesters.value, () => {
-  if (semesters.value != null) {
-    localStorage.setItem("semesters", JSON.stringify(semesters.value));
-  }
-  console.log(JSON.parse(localStorage.getItem("semesters")));
+
+const scale = (n, domainMax, rangeMax) => {
+  const rate = n / domainMax;
+  return rangeMax * rate;
+};
+
+const rotation = computed(() => scale(CGPA.value, 4, 180));
+const color = computed(() => {
+  if (CGPA.value >= 3) return "#007A3D"; // Green
+  if (CGPA.value >= 2) return "#F9D616"; // Yellow
+  return "#CE1126"; // Red
 });
 </script>
 
@@ -188,7 +193,9 @@ watch(semesters.value, () => {
                 </button>
               </li>
             </ul>
-            <div>Semester {{ semester.id }} GPA: {{ semester.gpa }}</div>
+            <div class="semester-gpa">
+              Semester {{ semester.id }} GPA: {{ semester.gpa }}
+            </div>
             <button class="add-course" @click="addCourse(semester.id)">Add Course</button>
           </li>
         </ul>
@@ -196,35 +203,72 @@ watch(semesters.value, () => {
       <button class="add-semester" @click="addSemester">Add Semester</button>
     </div>
     <!-- Cumulative GPA -->
-    <div
-      style="
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-      "
-    >
-      <h1>CGBA</h1>
-      <h1>{{ totalGPA }}</h1>
+
+    <div>
+      <svg id="gauge" height="180" width="300">
+        <defs>
+          <mask id="donut">
+            <path
+              d="M 0 150
+           A 45 45, 0, 0, 1, 300 150
+           L 230 150
+           A 45 45, 0, 0, 0, 70, 150
+           L 0 150"
+              fill="white"
+              stroke="black"
+            />
+          </mask>
+        </defs>
+
+        <path
+          d="M 0 150
+           A 45 45, 0, 0, 1, 300 150
+           L 230 150
+           A 45 45, 0, 0, 0, 70, 150
+           L 0 150"
+          fill="white"
+          stroke="#BBBBBB"
+        />
+
+        <g mask="url(#donut)">
+          <rect
+            x="0"
+            y="150"
+            height="150"
+            width="300"
+            :fill="color"
+            :transform="`rotate(${rotation} 150 150)`"
+          />
+        </g>
+
+        <text class="rate" x="150" y="135" text-anchor="middle">
+          {{ CGPA }}
+        </text>
+        <text class="label" x="150" y="180" text-anchor="middle">CGPA</text>
+      </svg>
     </div>
   </main>
 </template>
 
-<style scoped>
-h1 {
-  font-weight: bold;
+<style>
+* {
+  padding: 0;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
 }
+
 body {
   background-color: #f6f1f1;
 }
 nav {
   box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.07);
-  padding: 3px 20px;
+  padding: 9px 60px;
 }
 
 nav h1 {
   color: #19a7ce;
   font-weight: 600;
+  font-size: xx-large;
 }
 
 ul {
@@ -235,7 +279,7 @@ ul {
 }
 
 main {
-  padding-top: 60px;
+  padding: 40px 0px;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -287,7 +331,6 @@ section {
 input:focus,
 select:focus {
   outline: none;
-
   border: 1px solid #146c94;
 }
 .remove-semester {
@@ -296,14 +339,13 @@ select:focus {
   background-color: transparent;
   transition: all 0.4s ease;
   color: #19a7ce;
-
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .remove-semester:hover {
   color: #146c94;
-  cursor: pointer;
 }
 .input-l {
   border-top-left-radius: 8px 8px;
@@ -323,7 +365,7 @@ input {
 }
 select {
   border: 1px solid #19a7ce;
-  padding: 7px 8px 8px;
+  padding: 7px 8px 7px;
 }
 
 .semester-card:not(:last-child) {
@@ -335,5 +377,15 @@ select {
   background-color: transparent;
   color: #19a7ce;
   cursor: pointer;
+  transition: all 0.4s ease;
+  margin-left: 6px;
+}
+
+.remove-course:hover {
+  color: #146c94;
+}
+
+.semester-gpa {
+  margin: 6px 0px;
 }
 </style>
